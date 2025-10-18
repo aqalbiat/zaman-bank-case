@@ -94,6 +94,12 @@ func main() {
 		log.Fatal(respErr)
 	}
 
-	fmt.Println(resp)
+	var chatCompletion ChatCompletionResponse
+
+	json.Unmarshal([]byte(resp), &chatCompletion)
+
+	fmt.Println("The id of the chat completion: " + chatCompletion.Id)
+	fmt.Println(chatCompletion.Choices[0].Message.Content)
+	fmt.Println("Overall tokens used for answer: " + chatCompletion.Usage[0].CompletionTokens)
 
 }
