@@ -12,3 +12,4 @@
 
 - [Aman Kalbiat](https://github.com/aqalbiat)
 - [Ali Mukhamejan](https://github.com/sirovia) 
+- [Tamat Aldiyarov](https://github.com/tanataldiyarov)
