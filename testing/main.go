@@ -77,6 +77,10 @@ func main() {
 
 	user_query := os.Args[1:]
 
+	if len(user_query) < 1 {
+		log.Fatal("At least one argument should be in the command args")
+	}
+
 	collect_msg := strings.Join(user_query, " ")
 
 	api_key, loadErr := GetApiKey()
@@ -96,10 +100,15 @@ func main() {
 
 	var chatCompletion ChatCompletionResponse
 
-	json.Unmarshal([]byte(resp), &chatCompletion)
+	unmErr := json.Unmarshal([]byte(resp), &chatCompletion)
+
+	if unmErr != nil {
+		log.Println("Something went wrong while unmarshalling error")
+		log.Fatal(unmErr)
+	}
 
 	fmt.Println("The id of the chat completion: " + chatCompletion.Id)
 	fmt.Println(chatCompletion.Choices[0].Message.Content)
-	fmt.Println("Overall tokens used for answer: " + chatCompletion.Usage[0].CompletionTokens)
+	fmt.Println("Overall tokens used for answer: ", chatCompletion.Usage.CompletionTokens)
 
 }
