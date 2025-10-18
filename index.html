@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZARA — Financial AI Assistant</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <div id="chat">
+    <h2 class="title">💬 ZARA — Financial Assistant</h2>
+    <div id="messages" class="messages"></div>
+    <div class="input-area">
+      <input id="input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') send()">
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    async function typeEffect(text, who) {
+      const messages = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = `msg ${who}`;
+      messages.appendChild(div);
+
+      for (let i = 0; i < text.length; i++) {
+        // use markdown only for bot
+        div.innerHTML = who === "bot" ? marked.parse(text.slice(0, i + 1)) : text.slice(0, i + 1);
+        messages.scrollTop = messages.scrollHeight;
+        await new Promise(r => setTimeout(r, Math.random() * 20 + 10));
+      }
+    }
+
+    async function send() {
+      const input = document.getElementById("input");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      addMsg(msg, "user");
+      input.value = "";
+
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      const res = await fetch("http://127.0.0.1:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+      });
+
+      const data = await res.json();
+      await typeEffect(data.reply, "bot");
+    }
+
+    function addMsg(text, who) {
+      const messages = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = `msg ${who}`;
+
+      // If the assistant (bot), render Markdown nicely
+      if (who === "bot") {
+        div.innerHTML = marked.parse(text);
+      } else {
+        div.textContent = text;
+      }
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+
+  </script>
+</body>
+</html>
