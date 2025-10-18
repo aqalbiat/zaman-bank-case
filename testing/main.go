@@ -12,15 +12,30 @@ import (
 	"strings"
 )
 
-func GetResponseFromGPT(user_query string) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return "", errors.New("OPENAI_API_KEY environment variable not set.")
+func GetApiKey() (string, error) {
+	file, openErr := os.Open("./keylogs/api_keys.txt")
+	if openErr != nil {
+		return "", openErr
 	}
+	data, dataErr := io.ReadAll(file)
+	if dataErr != nil {
+		return "", dataErr
+	}
+	cleared := []byte{}
+	for _, x := range data {
+		if 33 <= int(x) && int(x) <= 126 {
+			cleared = append(cleared, x)
+		}
+	}
+	fmt.Println("Given key: " + string(cleared))
+	return string(cleared), nil
+}
 
-	url := "https://api.openai.com/v1/chat/completions"
+func GetResponseFromGPT(user_query string, api_key string) (string, error) {
+
+	url := "https://openai-hub.neuraldeep.tech/v1/chat/completions"
 	payload := map[string]interface{}{
-		"model": "gpt-3.5-turbo",
+		"model": "gpt-4o-mini",
 		"messages": []map[string]string{
 			{"role": "user", "content": user_query},
 		},
@@ -39,7 +54,7 @@ func GetResponseFromGPT(user_query string) (string, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Authorization", "Bearer "+api_key)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -64,11 +79,19 @@ func main() {
 
 	collect_msg := strings.Join(user_query, " ")
 
-	resp, respErr := GetResponseFromGPT(collect_msg)
+	api_key, loadErr := GetApiKey()
+
+	if loadErr != nil {
+		log.Println("Something went wrong during api key read")
+		log.Println(loadErr)
+		return
+	}
+
+	resp, respErr := GetResponseFromGPT(collect_msg, api_key)
 
 	if respErr != nil {
 		log.Println("Something went wrong during the request")
-		log.Fatal(resp)
+		log.Fatal(respErr)
 	}
 
 	fmt.Println(resp)
